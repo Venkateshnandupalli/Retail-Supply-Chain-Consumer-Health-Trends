@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import os
+import sys
+import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -49,13 +51,25 @@ def run_query(query):
 # Check if database exists
 db_exists = os.path.exists('supply_chain.db')
 
+if not db_exists:
+    st.info("⚠️ Database 'supply_chain.db' not found. Running the data pipeline to initialize the database...")
+    try:
+        # Run run_pipeline.py to generate database and compute views
+        result = subprocess.run([sys.executable, 'run_pipeline.py'], capture_output=True, text=True)
+        if result.returncode == 0:
+            st.success("✅ Database initialized successfully!")
+            db_exists = True
+        else:
+            st.error(f"❌ Failed to initialize database: {result.stderr}")
+    except Exception as e:
+        st.error(f"❌ Error running pipeline: {str(e)}")
+
 # Title
 st.title("📈 Retail Supply Chain & Consumer Health Trends Dashboard")
 st.markdown("---")
 
 if not db_exists:
-    st.error("⚠️ Database 'supply_chain.db' not found! Please run the database creator script first:")
-    st.code("python create_db.py", language="bash")
+    st.error("⚠️ Database initialization failed. Please run 'python run_pipeline.py' manually in your terminal.")
 else:
     # --- Sidebar Filters & Target Settings ---
     st.sidebar.header("🔍 Filters & Parameters")
