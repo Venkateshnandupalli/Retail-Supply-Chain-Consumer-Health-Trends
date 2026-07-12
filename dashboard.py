@@ -18,56 +18,107 @@ st.set_page_config(
 
 # Custom CSS for premium styling
 st.markdown("""<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
     
-    /* Elegant Title styling */
+    .hero-container {
+        background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    
+    .hero-tag {
+        display: inline-block;
+        background: rgba(99, 102, 241, 0.15);
+        color: #a5b4fc;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 10px;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
     .premium-title {
         font-family: 'Inter', sans-serif;
         font-weight: 800;
-        background: linear-gradient(95deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+        font-size: 2.25rem !important;
+        background: linear-gradient(95deg, #a5b4fc 0%, #6366f1 50%, #38bdf8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-bottom: 5px;
+        margin-top: 0;
+        margin-bottom: 8px;
+        line-height: 1.2 !important;
     }
     
-    /* Clean Metric cards with subtle hover effect */
+    .hero-subtitle {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+    
     [data-testid="stMetric"] {
-        background-color: var(--secondary-background-color) !important;
-        border: 1px solid var(--border-color, #e2e8f0) !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        background-color: #111827 !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        border-radius: 16px !important;
+        padding: 24px 20px !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease !important;
     }
     
     [data-testid="stMetric"]:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.15) !important;
+        border-color: rgba(99, 102, 241, 0.5) !important;
+    }
+
+    [data-testid="stMetricLabel"] {
+        color: #94a3b8 !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        color: #f3f4f6 !important;
     }
     
-    /* SQL sandbox styling */
+    button[data-baseweb="tab"] {
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        color: #94a3b8 !important;
+        transition: color 0.2s ease !important;
+    }
+    
+    button[data-baseweb="tab"]:hover {
+        color: #a5b4fc !important;
+    }
+    
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #6366f1 !important;
+    }
+    
     .sql-box {
-        background-color: var(--secondary-background-color);
-        color: var(--text-color);
+        background-color: #111827;
+        color: #f3f4f6;
         padding: 15px;
         border-radius: 8px;
         font-family: monospace;
-        border: 1px solid var(--border-color, #e9ecef);
-    }
-
-    /* Dark mode support override */
-    @media (prefers-color-scheme: dark) {
-        .premium-title {
-            background: linear-gradient(95deg, #a5b4fc 0%, #6366f1 50%, #38bdf8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+        border: 1px solid rgba(99, 102, 241, 0.2);
     }
 </style>""", unsafe_allow_html=True)
 
@@ -98,9 +149,14 @@ if not db_exists:
     except Exception as e:
         st.error(f"❌ Error running pipeline: {str(e)}")
 
-# Title
-st.markdown('<h1 class="premium-title">📈 Retail Supply Chain & Consumer Health Trends Dashboard</h1>', unsafe_allow_html=True)
-st.markdown("---")
+# Title / Hero Banner
+st.markdown("""
+<div class="hero-container">
+    <span class="hero-tag">SupplyIQ Platform</span>
+    <h1 class="premium-title">Retail Supply Chain & Consumer Health Trends</h1>
+    <p class="hero-subtitle">Interactive analytics engine simulating inventory replenishment, dynamic safety stock optimization, daily demand forecasts, and SQL query sandbox.</p>
+</div>
+""", unsafe_allow_html=True)
 
 if not db_exists:
     st.error("⚠️ Database initialization failed. Please run 'python run_pipeline.py' manually in your terminal.")
