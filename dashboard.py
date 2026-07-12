@@ -17,22 +17,20 @@ st.set_page_config(
 # Custom CSS for premium styling
 st.markdown("""
 <style>
-    .main {
-        background-color: #f8f9fa;
-    }
     .stMetric {
-        background-color: white;
+        background-color: var(--secondary-background-color);
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--border-color, #e9ecef);
     }
     .sql-box {
-        background-color: #212529;
-        color: #f8f9fa;
+        background-color: var(--secondary-background-color);
+        color: var(--text-color);
         padding: 15px;
         border-radius: 5px;
         font-family: monospace;
+        border: 1px solid var(--border-color, #e9ecef);
     }
 </style>
 """, unsafe_allow_html=True)
