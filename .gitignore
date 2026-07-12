@@ -1,0 +1,24 @@
+# Virtual Environments
+.venv/
+.venv-1/
+venv/
+env/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Databases (SQLite)
+*.db
+*.sqlite3
+
+# Test and temporary files
+test_write.txt
+test_write2.txt
+*.log
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store
