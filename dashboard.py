@@ -193,7 +193,7 @@ else:
         """
         warehouse_df, _ = run_query(warehouse_query)
         if not warehouse_df.empty:
-            st.dataframe(warehouse_df, use_container_width=True)
+            st.dataframe(warehouse_df, width="stretch")
         else:
             st.info("No warehouse logs fit the active filter selection.")
 
@@ -334,7 +334,7 @@ else:
                     'SKU_ID', 'Category', 'Inventory_Level', 'avg_demand', 
                     'avg_lead_time', 'Safety_Stock', 'Dynamic_ROP', 'Shock_ROP', 'Vulnerability', 'Shock_Suggested_Order_Qty'
                 ]],
-                use_container_width=True
+                width="stretch"
             )
         else:
             st.info("No stock data found.")
@@ -407,7 +407,7 @@ else:
             st.line_chart(combined_df)
             
             st.subheader("Next 30-Day Forecast Table")
-            st.dataframe(future_df, use_container_width=True)
+            st.dataframe(future_df, width="stretch")
         else:
             st.warning("Insufficient historical data to construct a robust time-series forecast. Requires at least 7 days of logs.")
 
@@ -457,7 +457,7 @@ else:
             # Display
             st.dataframe(
                 sup_stats.sort_values(by='Score', ascending=False),
-                use_container_width=True
+                width="stretch"
             )
         else:
             st.info("No supplier records found.")
@@ -544,5 +544,4 @@ LIMIT 5;"""
                             st.error(f"❌ SQL Execution Error:\n`{err}`")
                         else:
                             st.success(f"✓ Success! Query returned {len(results_df)} row(s).")
-                            st.dataframe(results_df, use_container_width=True)
-
+                            st.dataframe(results_df, width="stretch")
