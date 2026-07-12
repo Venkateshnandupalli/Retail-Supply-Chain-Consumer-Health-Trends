@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 import numpy as np
 from pathlib import Path
 
@@ -27,5 +27,6 @@ print("Injecting trend into:", units_col)
 df.loc[is_health, units_col] = df.loc[is_health, units_col] * 2
 
 # 4. Save the new, modified data to a new CSV file
-df.to_csv("modified_health_trend_data.csv", index=False)
-print("Done! Check your folder for 'modified_health_trend_data.csv'")
+output_file = Path("raw_data.csv") / "modified_health_trend_data.csv"
+df.to_csv(output_file, index=False)
+print(f"Done! Check your folder for '{output_file}'")
