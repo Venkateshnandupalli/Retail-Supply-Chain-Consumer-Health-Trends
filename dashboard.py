@@ -78,6 +78,12 @@ else:
     service_level = st.sidebar.selectbox("Target Service Level", ["90%", "95%", "99%"], index=1)
     
     st.sidebar.markdown("---")
+    st.sidebar.header("⚡ SC Stress Testing")
+    st.sidebar.markdown("Simulate supply chain shocks:")
+    demand_surge = st.sidebar.slider("Demand Surge (% Increase)", min_value=0, max_value=100, value=0, step=10)
+    supplier_delay = st.sidebar.slider("Supplier Delay (Days)", min_value=0, max_value=10, value=0, step=1)
+    
+    st.sidebar.markdown("---")
     st.sidebar.markdown("""
     ### ℹ️ About this Project
     This industry-grade dashboard provides interactive intelligence to optimize stock levels, forecast retail demand, analyze supplier risk, and run custom queries.
@@ -233,7 +239,7 @@ else:
             stats = pd.merge(stats, latest_inv, on='SKU_ID')
             stats = stats.fillna(0)
 
-            # Safety Stock formulation: Z * sqrt(L * std_d^2 + d^2 * std_L^2)
+            # 1. Base calculations
             stats['Safety_Stock'] = Z * np.sqrt(
                 stats['avg_lead_time'] * (stats['std_demand'] ** 2) + 
                 (stats['avg_demand'] ** 2) * (stats['std_lead_time'] ** 2)
@@ -244,41 +250,91 @@ else:
             
             # Status and recommended order quantities
             stats['Status'] = np.where(stats['Inventory_Level'] <= stats['Dynamic_ROP'], "🚨 Reorder", "✅ Healthy")
-            stats['Suggested_Order_Qty'] = np.where(
-                stats['Inventory_Level'] <= stats['Dynamic_ROP'],
-                np.maximum(stats['avg_order_qty'], stats['Dynamic_ROP'] - stats['Inventory_Level']).round(0),
+            
+            # 2. What-If Shock calculations
+            shock_demand = stats['avg_demand'] * (1 + demand_surge / 100)
+            shock_lead_time = stats['avg_lead_time'] + supplier_delay
+
+            stats['Shock_Safety_Stock'] = Z * np.sqrt(
+                shock_lead_time * (stats['std_demand'] ** 2) + 
+                (shock_demand ** 2) * (stats['std_lead_time'] ** 2)
+            )
+            stats['Shock_ROP'] = (shock_demand * shock_lead_time) + stats['Shock_Safety_Stock']
+            stats['Shock_Status'] = np.where(stats['Inventory_Level'] <= stats['Shock_ROP'], "🚨 Reorder", "✅ Healthy")
+            
+            # Determine vulnerability
+            stats['Vulnerability'] = np.where(
+                (stats['Status'] == "✅ Healthy") & (stats['Shock_Status'] == "🚨 Reorder"),
+                "⚠️ Vulnerable",
+                np.where(stats['Status'] == "🚨 Reorder", "🚨 Reorder", "✅ Stable")
+            )
+            
+            # Shock recommended quantities
+            stats['Shock_Suggested_Order_Qty'] = np.where(
+                stats['Inventory_Level'] <= stats['Shock_ROP'],
+                np.maximum(stats['avg_order_qty'], stats['Shock_ROP'] - stats['Inventory_Level']).round(0),
                 0
             )
 
-            # Format outputs
+            # Format outputs for rendering
             stats['Safety_Stock'] = stats['Safety_Stock'].round(1)
             stats['Dynamic_ROP'] = stats['Dynamic_ROP'].round(1)
+            stats['Shock_Safety_Stock'] = stats['Shock_Safety_Stock'].round(1)
+            stats['Shock_ROP'] = stats['Shock_ROP'].round(1)
             stats['avg_demand'] = stats['avg_demand'].round(1)
             stats['avg_lead_time'] = stats['avg_lead_time'].round(1)
 
-            # Highlight Reorder items
+            # Compare counts
             reorder_count = len(stats[stats['Status'] == "🚨 Reorder"])
+            shock_reorder_count = len(stats[stats['Shock_Status'] == "🚨 Reorder"])
+            vulnerable_count = len(stats[stats['Vulnerability'] == "⚠️ Vulnerable"])
             
-            sub_cols = st.columns(3)
+            sub_cols = st.columns(4)
             with sub_cols[0]:
-                st.metric(label="Target Service Level Z-Score", value=f"{Z}")
+                st.metric(label="Target Z-Score", value=f"{Z}")
             with sub_cols[1]:
-                st.metric(label="Active Dynamic Reorder Alerts", value=f"{reorder_count}", delta=None)
+                st.metric(label="Reorder Alerts (Normal)", value=f"{reorder_count}", delta=None)
             with sub_cols[2]:
-                st.metric(label="Healthy SKUs", value=f"{len(stats) - reorder_count}", delta=None)
+                st.metric(
+                    label="Reorder Alerts (Shocked)", 
+                    value=f"{shock_reorder_count}", 
+                    delta=f"+{shock_reorder_count - reorder_count}" if shock_reorder_count > reorder_count else None,
+                    delta_color="inverse"
+                )
+            with sub_cols[3]:
+                st.metric(
+                    label="Vulnerable SKUs at Risk", 
+                    value=f"{vulnerable_count}", 
+                    delta="Risk Alert" if vulnerable_count > 0 else None,
+                    delta_color="inverse"
+                )
 
-            st.markdown("#### SKU-Level Restocking Recommendations")
+            # Warning callout
+            if vulnerable_count > 0:
+                st.warning(f"⚠️ **Stress Test Warning:** Simulated shock (Demand Surge: +{demand_surge}%, Supplier Delay: +{supplier_delay} Days) "
+                           f"puts **{vulnerable_count} SKUs** at risk of running out of stock! These items are flagged as **⚠️ Vulnerable** below.")
+
+            st.markdown("#### SKU-Level Restocking Recommendations under Stress Test")
             
-            # Filter options for status
-            show_reorder_only = st.checkbox("Show Reorder Alerts Only", value=True)
+            # View toggle
+            show_mode = st.radio(
+                "Display Filter:", 
+                ["Show All SKUs", "Show Reorder Alerts (Normal) Only", "Show Reorder Alerts (Shocked) Only", "Show Vulnerable SKUs Only"],
+                horizontal=True
+            )
+
             display_stats = stats.copy()
-            if show_reorder_only:
+            if show_mode == "Show Reorder Alerts (Normal) Only":
                 display_stats = display_stats[display_stats['Status'] == "🚨 Reorder"]
+            elif show_mode == "Show Reorder Alerts (Shocked) Only":
+                display_stats = display_stats[display_stats['Shock_Status'] == "🚨 Reorder"]
+            elif show_mode == "Show Vulnerable SKUs Only":
+                display_stats = display_stats[display_stats['Vulnerability'] == "⚠️ Vulnerable"]
 
             st.dataframe(
                 display_stats[[
                     'SKU_ID', 'Category', 'Inventory_Level', 'avg_demand', 
-                    'avg_lead_time', 'Safety_Stock', 'Dynamic_ROP', 'Status', 'Suggested_Order_Qty'
+                    'avg_lead_time', 'Safety_Stock', 'Dynamic_ROP', 'Shock_ROP', 'Vulnerability', 'Shock_Suggested_Order_Qty'
                 ]],
                 use_container_width=True
             )
