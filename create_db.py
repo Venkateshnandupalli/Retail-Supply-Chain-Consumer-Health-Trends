@@ -14,6 +14,16 @@ conn = sqlite3.connect('supply_chain.db')
 print("Building SQL Database...")
 df.to_sql('retail_data', conn, if_exists='replace', index=False)
 
-# 4. Close the connection
+# 4. Create database views from SQL script
+print("Creating views and database metrics...")
+try:
+    with open('analytics_metrics.sql', 'r') as sql_file:
+        sql_script = sql_file.read()
+    conn.executescript(sql_script)
+    print("Database views created successfully.")
+except Exception as e:
+    print(f"Error executing SQL script: {e}")
+
+# 5. Close the connection
 conn.close()
 print("Success! Check your folder for 'supply_chain.db'")
