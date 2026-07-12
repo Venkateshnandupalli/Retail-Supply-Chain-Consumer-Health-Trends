@@ -137,15 +137,15 @@ def run_query(query):
 db_exists = os.path.exists('supply_chain.db')
 
 if not db_exists:
-    st.info("⚠️ Database 'supply_chain.db' not found. Running the data pipeline to initialize the database...")
+    st.info("⚠️ Database 'supply_chain.db' not found. Initializing the data pipeline...")
     try:
-        # Run run_pipeline.py to generate database and compute views
-        result = subprocess.run([sys.executable, 'run_pipeline.py'], capture_output=True, text=True)
-        if result.returncode == 0:
-            st.success("✅ Database initialized successfully!")
-            db_exists = True
-        else:
-            st.error(f"❌ Failed to initialize database: {result.stderr}")
+        # Run scripts directly inside the current Python process to avoid subprocess sandbox limits on cloud hosting
+        with open('data_prep.py', 'r') as f:
+            exec(f.read(), globals())
+        with open('create_db.py', 'r') as f:
+            exec(f.read(), globals())
+        db_exists = True
+        st.success("✅ Database initialized successfully!")
     except Exception as e:
         st.error(f"❌ Error running pipeline: {str(e)}")
 
