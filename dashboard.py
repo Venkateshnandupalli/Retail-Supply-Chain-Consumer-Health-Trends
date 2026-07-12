@@ -17,25 +17,59 @@ st.set_page_config(
 )
 
 # Custom CSS for premium styling
-st.markdown("""
-<style>
-    .stMetric {
-        background-color: var(--secondary-background-color);
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        border: 1px solid var(--border-color, #e9ecef);
+st.markdown("""<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
+    
+    /* Elegant Title styling */
+    .premium-title {
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        background: linear-gradient(95deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 5px;
+    }
+    
+    /* Clean Metric cards with subtle hover effect */
+    [data-testid="stMetric"] {
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid var(--border-color, #e2e8f0) !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+    
+    [data-testid="stMetric"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    /* SQL sandbox styling */
     .sql-box {
         background-color: var(--secondary-background-color);
         color: var(--text-color);
         padding: 15px;
-        border-radius: 5px;
+        border-radius: 8px;
         font-family: monospace;
         border: 1px solid var(--border-color, #e9ecef);
     }
-</style>
-""", unsafe_allow_html=True)
+
+    /* Dark mode support override */
+    @media (prefers-color-scheme: dark) {
+        .premium-title {
+            background: linear-gradient(95deg, #a5b4fc 0%, #6366f1 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    }
+</style>""", unsafe_allow_html=True)
 
 # Helper function to run query
 def run_query(query):
@@ -65,7 +99,7 @@ if not db_exists:
         st.error(f"❌ Error running pipeline: {str(e)}")
 
 # Title
-st.title("📈 Retail Supply Chain & Consumer Health Trends Dashboard")
+st.markdown('<h1 class="premium-title">📈 Retail Supply Chain & Consumer Health Trends Dashboard</h1>', unsafe_allow_html=True)
 st.markdown("---")
 
 if not db_exists:
